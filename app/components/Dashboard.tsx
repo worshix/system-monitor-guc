@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import mqtt, { MqttClient } from 'mqtt'
+import mqtt from 'mqtt'
 import Gauge from './Gauge'
 
 const HEARTBEAT_TIMEOUT_MS = 10_000
@@ -21,7 +21,7 @@ interface SystemInfo {
 
 const SYSTEM_INFO: SystemInfo = {
   title: 'GUC Motor Monitor',
-  voltage: 220, // Volts — used for P = V × I
+  voltage: 220,
 }
 
 type BrokerStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
@@ -88,7 +88,7 @@ export default function Dashboard() {
   const [motorRunning, setMotorRunning] = useState(false)
   const [lastSeen, setLastSeen] = useState<Date | null>(null)
 
-  const clientRef = useRef<MqttClient | null>(null)
+  const clientRef = useRef<ReturnType<typeof mqtt.connect> | null>(null)
   const heartbeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const resetHeartbeat = useCallback(() => {
@@ -125,7 +125,7 @@ export default function Dashboard() {
 
     client.on('message', (topic: string, payload: Buffer) => {
       const raw = parseFloat(payload.toString())
-      if (Number.isNaN(raw)) return
+      if (!Number.isFinite(raw)) return
 
       resetHeartbeat()
 
@@ -239,8 +239,16 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <InfoField label="System Title" value={SYSTEM_INFO.title} />
           <InfoField label="Supply Voltage" value={`${SYSTEM_INFO.voltage} V`} />
-          <InfoField label="Motor State" value={motorRunning ? 'RUNNING' : 'STOPPED'} highlight={motorRunning} />
-          <InfoField label="Health Score" value={`${data.health.toFixed(1)} %`} highlight={data.health > 70} />
+          <InfoField
+            label="Motor State"
+            value={motorRunning ? 'RUNNING' : 'STOPPED'}
+            highlight={motorRunning}
+          />
+          <InfoField
+            label="Health Score"
+            value={`${data.health.toFixed(1)} %`}
+            highlight={data.health > 70}
+          />
         </div>
       </section>
 
@@ -310,10 +318,9 @@ export default function Dashboard() {
 
       {/* ── Motor Control ── */}
       <section className="flex justify-center">
-        <div className="p-6 rounded-xl border border-blue-900/40 bg-[#0a1628]/80 flex flex-col items-center gap-4 min-w-[240px]">
+        <div className="p-6 rounded-xl border border-blue-900/40 bg-[#0a1628]/80 flex flex-col items-center gap-4 min-w-60">
           <h2 className="text-[10px] text-blue-500 tracking-widest uppercase">Motor Control</h2>
 
-          {/* State indicator ring */}
           <div className="relative flex items-center justify-center">
             <div
               className={`w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all duration-700 ${
@@ -332,8 +339,12 @@ export default function Dashboard() {
                   strokeWidth="2"
                 />
                 {motorRunning ? (
-                  /* Spinning blades when running */
-                  <g style={{ transformOrigin: '20px 20px', animation: 'spin 2s linear infinite' }}>
+                  <g
+                    style={{
+                      transformOrigin: '20px 20px',
+                      animation: 'spin 2s linear infinite',
+                    }}
+                  >
                     <line x1="20" y1="8" x2="20" y2="20" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" />
                     <line x1="20" y1="20" x2="30" y2="28" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" />
                     <line x1="20" y1="20" x2="10" y2="28" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" />

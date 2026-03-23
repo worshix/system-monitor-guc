@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//var/log/mosquitto/**)",
+      "Bash(python3 -c \"import socket; s=socket.socket\\(\\); s.settimeout\\(2\\); r=s.connect_ex\\(\\(''localhost'', 9001\\)\\); print\\(''9001 open:'', r==0\\); s.close\\(\\); s2=socket.socket\\(\\); s2.settimeout\\(2\\); r2=s2.connect_ex\\(\\(''localhost'', 1883\\)\\); print\\(''1883 open:'', r2==0\\); s2.close\\(\\)\")"
+    ]
+  }
+}
