@@ -312,6 +312,7 @@ export default function Dashboard() {
             color="#34d399"
             warningAt={40}
             criticalAt={20}
+            inverted
           />
         </GaugeCard>
       </section>

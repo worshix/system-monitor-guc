@@ -9,6 +9,7 @@ interface GaugeProps {
   color?: string
   warningAt?: number
   criticalAt?: number
+  inverted?: boolean
 }
 
 export default function Gauge({
@@ -20,6 +21,7 @@ export default function Gauge({
   color = '#3b82f6',
   warningAt,
   criticalAt,
+  inverted = false,
 }: GaugeProps) {
   const clampedValue = Math.max(min, Math.min(max, value))
   const percent = (clampedValue - min) / (max - min)
@@ -70,10 +72,18 @@ export default function Gauge({
 
   // Active color depending on thresholds
   let activeColor = color
-  if (criticalAt !== undefined && clampedValue >= criticalAt) {
-    activeColor = '#ef4444'
-  } else if (warningAt !== undefined && clampedValue >= warningAt) {
-    activeColor = '#f59e0b'
+  if (inverted) {
+    if (criticalAt !== undefined && clampedValue <= criticalAt) {
+      activeColor = '#ef4444'
+    } else if (warningAt !== undefined && clampedValue <= warningAt) {
+      activeColor = '#f59e0b'
+    }
+  } else {
+    if (criticalAt !== undefined && clampedValue >= criticalAt) {
+      activeColor = '#ef4444'
+    } else if (warningAt !== undefined && clampedValue >= warningAt) {
+      activeColor = '#f59e0b'
+    }
   }
 
   // Tick marks
