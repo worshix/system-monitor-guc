@@ -7,9 +7,11 @@ interface GaugeProps {
   label: string
   unit: string
   color?: string
-  warningAt?: number
-  criticalAt?: number
-  inverted?: boolean
+  warningAt?: number       // high-side warning (needle turns yellow above this)
+  criticalAt?: number      // high-side critical (needle turns red above this)
+  lowWarningAt?: number    // low-side warning  (needle turns yellow below this)
+  lowCriticalAt?: number   // low-side critical (needle turns red below this)
+  inverted?: boolean       // flip threshold logic (e.g. health: low value = bad)
 }
 
 export default function Gauge({
@@ -21,6 +23,8 @@ export default function Gauge({
   color = '#3b82f6',
   warningAt,
   criticalAt,
+  lowWarningAt,
+  lowCriticalAt,
   inverted = false,
 }: GaugeProps) {
   const clampedValue = Math.max(min, Math.min(max, value))
@@ -57,7 +61,7 @@ export default function Gauge({
   const valueEndAngle = startAngle + sweepAngle * percent
   const valuePath = percent > 0 ? arcPath(startAngle, valueEndAngle) : ''
 
-  // Warning / critical arcs
+  // ── High-side zone markers ─────────────────────────────────────
   const warnStart =
     warningAt !== undefined
       ? startAngle + sweepAngle * ((warningAt - min) / (max - min))
@@ -67,21 +71,39 @@ export default function Gauge({
       ? startAngle + sweepAngle * ((criticalAt - min) / (max - min))
       : null
 
+  // ── Low-side zone markers ──────────────────────────────────────
+  const lowCritEnd =
+    lowCriticalAt !== undefined && lowCriticalAt > min
+      ? startAngle + sweepAngle * ((lowCriticalAt - min) / (max - min))
+      : null
+  const lowWarnEnd =
+    lowWarningAt !== undefined && lowWarningAt > min
+      ? startAngle + sweepAngle * ((lowWarningAt - min) / (max - min))
+      : null
+
   // Needle tip
   const needleTip = polarToCartesian(angle)
 
-  // Active color depending on thresholds
+  // ── Active color: check all threshold directions ───────────────
   let activeColor = color
   if (inverted) {
+    // Inverted: LOW values are bad (e.g. health %)
     if (criticalAt !== undefined && clampedValue <= criticalAt) {
       activeColor = '#ef4444'
     } else if (warningAt !== undefined && clampedValue <= warningAt) {
       activeColor = '#f59e0b'
     }
   } else {
+    // Normal high-side checks
     if (criticalAt !== undefined && clampedValue >= criticalAt) {
       activeColor = '#ef4444'
     } else if (warningAt !== undefined && clampedValue >= warningAt) {
+      activeColor = '#f59e0b'
+    }
+    // Low-side checks (e.g. voltage below minimum)
+    else if (lowCriticalAt !== undefined && clampedValue <= lowCriticalAt) {
+      activeColor = '#ef4444'
+    } else if (lowWarningAt !== undefined && clampedValue <= lowWarningAt) {
       activeColor = '#f59e0b'
     }
   }
@@ -91,7 +113,7 @@ export default function Gauge({
 
   return (
     <div className="gauge-wrapper">
-      <svg viewBox="0 0 200 180" className="w-full max-w-[200px] mx-auto">
+      <svg viewBox="0 0 200 180" className="w-full max-w-50 mx-auto">
         {/* Glow filter */}
         <defs>
           <filter id={`glow-${label}`} x="-20%" y="-20%" width="140%" height="140%">
@@ -119,7 +141,38 @@ export default function Gauge({
           strokeLinecap="round"
         />
 
-        {/* Warning zone */}
+        {/* Low critical zone (from start to lowCritEnd) */}
+        {lowCritEnd !== null && (
+          <path
+            d={arcPath(startAngle, lowCritEnd)}
+            fill="none"
+            stroke="#ef444422"
+            strokeWidth="10"
+            strokeLinecap="butt"
+          />
+        )}
+
+        {/* Low warning zone (from lowCritEnd to lowWarnEnd, or start to lowWarnEnd) */}
+        {lowWarnEnd !== null && lowCritEnd !== null && (
+          <path
+            d={arcPath(lowCritEnd, lowWarnEnd)}
+            fill="none"
+            stroke="#f59e0b22"
+            strokeWidth="10"
+            strokeLinecap="butt"
+          />
+        )}
+        {lowWarnEnd !== null && lowCritEnd === null && (
+          <path
+            d={arcPath(startAngle, lowWarnEnd)}
+            fill="none"
+            stroke="#f59e0b22"
+            strokeWidth="10"
+            strokeLinecap="butt"
+          />
+        )}
+
+        {/* High warning zone */}
         {warnStart !== null && critStart !== null && (
           <path
             d={arcPath(warnStart, critStart)}
@@ -130,7 +183,7 @@ export default function Gauge({
           />
         )}
 
-        {/* Critical zone */}
+        {/* High critical zone */}
         {critStart !== null && (
           <path
             d={arcPath(critStart, startAngle + sweepAngle)}

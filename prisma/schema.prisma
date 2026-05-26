@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model MotorLog {
+  id          Int      @id @default(autoincrement())
+  timestamp   DateTime @default(now())
+  voltage     Float    @default(0)
+  temperature Float    @default(0)
+  current     Float    @default(0)
+  power       Float    @default(0)
+  vibration   Float    @default(0)
+  health      Float    @default(100)
+  fault       String   @default("NONE")
+  motorState  String   @default("OFF")
+}

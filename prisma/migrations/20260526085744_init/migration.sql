@@ -1,0 +1,13 @@
+-- CreateTable
+CREATE TABLE "MotorLog" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "timestamp" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "voltage" REAL NOT NULL DEFAULT 0,
+    "temperature" REAL NOT NULL DEFAULT 0,
+    "current" REAL NOT NULL DEFAULT 0,
+    "power" REAL NOT NULL DEFAULT 0,
+    "vibration" REAL NOT NULL DEFAULT 0,
+    "health" REAL NOT NULL DEFAULT 100,
+    "fault" TEXT NOT NULL DEFAULT 'NONE',
+    "motorState" TEXT NOT NULL DEFAULT 'OFF'
+);
