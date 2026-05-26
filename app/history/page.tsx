@@ -131,7 +131,7 @@ function ChartCard({
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={160}>
-          <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+          <AreaChart data={data} margin={{ top: 4, right: 8, bottom: 4, left: 4 }}>
             <defs>
               <linearGradient id={`grad-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="10%"  stopColor={color} stopOpacity={0.25} />
@@ -150,7 +150,12 @@ function ChartCard({
               tick={{ fill: '#4b87c8', fontSize: 9, fontFamily: 'monospace' }}
               tickLine={false}
               axisLine={false}
-              width={36}
+              width={52}
+              tickFormatter={(v: number) =>
+                Math.abs(v) >= 100 ? v.toFixed(0)
+                : Math.abs(v) >= 1   ? v.toFixed(1)
+                :                      v.toFixed(3)
+              }
             />
             <Tooltip content={<DarkTooltip />} />
             {refLines?.map((r) => (
